@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<script>
+function loadAnalytics() {
+
+  if (window.analyticsLoaded) return;
+  window.analyticsLoaded = true;
+
+  const script = document.createElement('script');
+  script.async = true;
+  script.src =
+    'https://www.googletagmanager.com/gtag/js?id=G-NCZM277961';
+
+  document.head.appendChild(script);
+
+  window.dataLayer = window.dataLayer || [];
+
+  window.gtag = function(){
+    dataLayer.push(arguments);
+  };
+
+  gtag('js', new Date());
+  gtag('config', 'G-NCZM277961');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  if (
+    localStorage.getItem('cookieConsent')
+    === 'accepted'
+  ) {
+    loadAnalytics();
+  }
+
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalendář událostí | JSDH Ostrava - Heřmanice</title>
+
+<style>
+
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0b1220;
+  color:white;
+  padding:30px;
+}
+
+.card{
+  background:rgba(31,41,55,0.75);
+  backdrop-filter:blur(10px);
+
+  padding:20px;
+  border-radius:15px;
+  margin-top:20px;
+
+  width:100%;
+}
+
+input, textarea{
+  width:100%;
+  margin-top:10px;
+  padding:12px;
+
+  border:none;
+  border-radius:10px;
+
+  box-sizing:border-box;
+}
+
+button{
+  margin-top:15px;
+  padding:12px 20px;
+
+  border:none;
+  border-radius:10px;
+
+  background:#62a5ff;
+  color:black;
+  font-weight:bold;
+  font-size:16px;
+  font-family:Arial;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#4b72a7;
+}
+
+.event{
+  background:#2f3c58;
+  padding:15px;
+  border-radius:10px;
+  margin-top:15px;
+}
+
+.logout{
+  position:fixed;
+  top:20px;
+  right:20px;
+
+  z-index:1000;
+
+  margin:0;
+}
+
+.container{
+  width:100%;
+  max-width:none;
+
+  display:flex;
+  gap:20px;
+
+  padding:0 20px;
+  box-sizing:border-box;
+
+  align-items:flex-start;
+}
+
+.add-card{
+  width:280px;
+  flex-shrink:0;
+}
+
+#bg-video{
+  position:fixed;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+
+  z-index:-2;
+}
+
+body::after{
+  content:"";
+  position:fixed;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.7);
+
+  z-index:-1;
+}
+
+.event-item{
+  position:relative;
+
+  background:#65e22e;
+  color:black;
+
+  height:35px;          /* 🔥 fixní výška */
+  line-height:18px;     /* zarovnání textu */
+
+  padding:4px 6px;   /* ↓ menší výška */
+  border-radius:6px;
+
+  margin-top:28px;
+
+  font-size:12px;
+  font-weight:bold;
+
+  cursor:pointer;
+  overflow:hidden;
+}
+
+.event-item:hover{
+  transform:scale(1.02);
+}
+
+.event-delete{
+  position:absolute;
+  bottom:2px;
+  right:2px;
+
+  width:20px;
+  height:20px;
+
+  font-size:10px;
+  line-height:14px;
+
+  border:none;
+  border-radius:3px;
+
+  background:#ed0000;
+  color:white;
+
+  cursor:pointer;
+  padding:0;
+}
+
+#calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:10px;
+  grid-auto-rows:100px; /* <-- DŮLEŽITÉ: všechny buňky stejně velké */
+}
+
+#calendar > div{
+  background:#2f3c58;
+  border-radius:10px;
+  padding:6px;
+  overflow:hidden;
+  position:relative;
+}
+
+.calendar-day{
+  position:relative;
+  background:#2f3c58;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.today {
+  border: 2px solid #62a5ff;
+  box-shadow: 0 0 10px rgba(98,165,255,0.6);
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+input[type="date"],
+input[type="text"],
+textarea{
+  width:100%;
+  box-sizing:border-box;
+  display:block;
+}
+
+@media (max-width: 768px){
+
+  body{
+    padding:10px;
+    overflow-x: hidden;
+  }
+
+  h1{
+    margin-top:60px !important;
+  }
+
+  .container{
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:0;
+  }
+
+  .card{
+    width:100%;
+    max-width:420px;
+    overflow:hidden;
+  }
+
+  #calendar{
+    display:grid;
+    grid-template-columns:repeat(7, 1fr);
+
+    gap:6px;
+  }
+
+  #calendar > div{
+
+    background:#33415c;
+
+    border-radius:10px;
+
+    aspect-ratio:1 / 1; /* přesné čtverce */
+
+    padding:3px;
+
+    font-size:10px;
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    box-sizing:border-box;
+
+    position:relative;
+
+    overflow:hidden;
+  }
+
+  .event-item{
+    width:100%;
+    height:100%;
+    margin-top:0;
+    padding:0;
+    border-radius:6px;
+    background:#65e22e;
+    font-size:0;
+    display:block;
+    cursor:pointer;
+  }
+
+  .event-item span{
+    display:block;
+    width:100%;
+    height:100%;
+  }
+
+  /* KOLEČKO */
+  .abc-circle{
+
+    position:absolute !important;
+
+    top:3px !important;
+    right:3px !important;
+
+    left:auto !important;
+    transform:none !important;
+
+    width:14px !important;
+    height:14px !important;
+
+    font-size:8px !important;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .calendar-day{
+    aspect-ratio:1 / 1;
+    padding:3px;
+    min-height:auto !important;
+    font-size:10px;
+    box-sizing:border-box;
+  }
+
+  .logout{
+    position:absolute;   /* 👈 místo fixed */
+    top:10px;
+    right:10px;
+    padding:6px 10px;   /* menší tlačítko */
+    font-size:14px;     /* menší text */
+    border-radius:8px;
+
+    z-index:1000;
+  }
+
+  .today{
+    border:2px solid #62a5ff;
+
+    box-shadow:
+      0 0 10px rgba(98,165,255,1),
+      0 0 20px rgba(98,165,255,0.9),
+      0 0 35px rgba(98,165,255,0.8);
+
+    z-index:20;
+  }
+}
+
+.cookie-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+
+  background: rgba(11,18,32,0.97);
+  color: white;
+
+  padding: 20px;
+  border-radius: 12px;
+
+  z-index: 99999;
+
+  display: none;
+
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.cookie-banner.show {
+  display: block;
+}
+
+.cookie-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.cookie-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.cookie-btn {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cookie-accept {
+  background: #22c55e;
+  color: white;
+}
+
+.cookie-decline {
+  background: #475569;
+  color: white;
+}
+</style>
+</head>
+<body>
+
+<video autoplay muted loop playsinline id="bg-video">
+  <source src="dron_hz.mp4" type="video/mp4">
+</video>
+
+<script>
+
+if(localStorage.getItem("loggedIn") !== "true"){
+  window.location.href = "login.html";
+}
+
+</script>
+
+<h1 style="text-align:center;margin:20px 0 10px 0;">
+  Kalendář událostí
+</h1>
+
+<div class="container">
+
+<button class="logout" onclick="logout()">
+  Odhlásit
+</button>
+
+<div class="card add-card">
+
+  <h2>Přidat akci</h2>
+
+  <label style="display:block;margin-top:10px;">Datum od:</label>
+  <input type="date" id="dateFrom">
+
+  <label style="display:block;margin-top:10px;">Datum do:</label>
+  <input type="date" id="dateTo">
+
+  <input type="text" id="title" placeholder="Název akce">
+
+  <textarea id="description"
+  placeholder="Popis akce"></textarea>
+
+  <button onclick="addEvent()">
+    Přidat
+  </button>
+
+</div>
+
+<div class="card">
+
+  <h2>Kalendář</h2>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+    <button onclick="changeMonth(-1)">◀</button>
+    <h3 id="monthTitle"></h3>
+    <button onclick="changeMonth(1)">▶</button>
+  </div>
+
+<div style="
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:10px;
+  margin-bottom:10px;
+  text-align:center;
+  font-weight:bold;
+  opacity:0.8;
+">
+  <div>Po</div>
+  <div>Út</div>
+  <div>St</div>
+  <div>Čt</div>
+  <div>Pá</div>
+  <div>So</div>
+  <div>Ne</div>
+</div>
+
+  <div id="calendar" style="
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:10px;
+  "></div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  updateDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+/* =========================
+   FIREBASE
+========================= */
+
+const app = initializeApp({
+  apiKey: "AIzaSyClLHDD_2u-66jblXbpWI_MJeLs2tAxvfA",
+  authDomain: "jsdh-hermanice-kalendar.firebaseapp.com",
+  projectId: "jsdh-hermanice-kalendar"
+});
+
+const db = getFirestore(app);
+const eventsRef = collection(db, "events");
+
+/* =========================
+   STATE
+========================= */
+
+let events = [];
+let currentDate = new Date();
+let isAdmin = localStorage.getItem("isAdmin") === "true";
+let openedEventId = null;
+
+/* =========================
+   DELETE
+========================= */
+
+window.deleteEvent = async function(id) {
+  if (!isAdmin) {
+    alert("Nemáš oprávnění");
+    return;
+  }
+
+  if (!confirm("Opravdu chceš smazat událost?")) return;
+
+  await deleteDoc(doc(db, "events", id));
+};
+
+/* =========================
+   MONTH NAV
+========================= */
+
+window.changeMonth = function(step) {
+  currentDate.setMonth(currentDate.getMonth() + step);
+  renderCalendar();
+};
+
+/* =========================
+   ABC LOGIKA
+========================= */
+
+function getABC(date) {
+  const start = new Date(2026, 4, 1);
+  const diff = Math.floor((date - start) / (1000 * 60 * 60 * 24));
+  const mod = ((diff % 3) + 3) % 3;
+
+  if (mod === 0) return { letter: "C", color: "red" };
+  if (mod === 1) return { letter: "A", color: "green" };
+  return { letter: "B", color: "white" };
+}
+
+/* =========================
+   RENDER KALENDÁŘ
+========================= */
+
+function renderCalendar() {
+
+  const calendar = document.getElementById("calendar");
+  calendar.innerHTML = "";
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+  const daysInMonth = lastDay.getDate();
+
+  document.getElementById("monthTitle").innerText =
+    currentDate.toLocaleString("cs-CZ", { month: "long", year: "numeric" });
+
+  /* prázdná pole */
+  for (let i = 0; i < startDay; i++) {
+    calendar.innerHTML += `<div></div>`;
+  }
+
+  /* dny */
+  for (let day = 1; day <= daysInMonth; day++) {
+
+    const today = new Date();
+    const todayStr =
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    const dateStr =
+      `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    const isToday = dateStr === todayStr;
+
+    const dayEvents = events.filter(e =>
+      dateStr >= e.dateFrom && dateStr <= e.dateTo
+    );
+
+    const dateObj = new Date(year, month, day);
+    const abc = getABC(dateObj);
+
+    let html = `
+      <div class="calendar-day ${isToday ? "today" : ""}">
+        
+        <div class="abc-circle" style="
+          position:absolute;
+          top:6px;
+          left:50%;
+          transform:translateX(-50%);
+          width:20px;
+          height:20px;
+          border-radius:50%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          font-size:11px;
+          font-weight:800;
+          color:black;
+          background:${abc.color};
+        ">
+          ${abc.letter}
+        </div>
+
+        <b style="
+          position:absolute;
+          top:3px;
+          left:4px;
+          font-size:10px;
+        ">
+          ${day}
+        </b>
+    `;
+
+    dayEvents.forEach(e => {
+      html += `
+        <div class="event-item" onclick="openEvent('${e.id}')">
+          <span>${e.title}</span>
+
+          ${isAdmin ? `
+            <button class="event-delete"
+              onclick="event.stopPropagation(); deleteEvent('${e.id}')">
+              ×
+            </button>
+          ` : ""}
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+    calendar.innerHTML += html;
+  }
+}
+
+/* =========================
+   FIRESTORE LISTENER
+========================= */
+
+onSnapshot(eventsRef, (snap) => {
+  events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderCalendar();
+});
+
+/* =========================
+   ADD EVENT
+========================= */
+
+window.addEvent = async function () {
+
+  const dateFrom = document.getElementById("dateFrom").value;
+  const dateTo = document.getElementById("dateTo").value;
+  const title = document.getElementById("title").value;
+  const description = document.getElementById("description").value;
+
+  await addDoc(eventsRef, {
+    dateFrom,
+    dateTo,
+    title,
+    description
+  });
+
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value = "";
+  document.getElementById("title").value = "";
+  document.getElementById("description").value = "";
+};
+
+/* =========================
+   LOGIN CHECK
+========================= */
+
+if (localStorage.getItem("loggedIn") !== "true") {
+  window.location.href = "login.html";
+}
+
+/* =========================
+   LOGOUT
+========================= */
+
+window.logout = function () {
+  localStorage.removeItem("loggedIn");
+  window.location.href = "login.html";
+};
+
+/* =========================
+   MODAL OPEN
+========================= */
+
+window.openEvent = function (id) {
+
+  openedEventId = id;
+
+  const e = events.find(x => x.id === id);
+  if (!e) return;
+
+  if (isAdmin) {
+    document.getElementById("adminEdit").style.display = "block";
+    document.getElementById("userView").style.display = "none";
+
+    document.getElementById("editTitle").value = e.title;
+    document.getElementById("editDescription").value = e.description;
+  } else {
+    document.getElementById("adminEdit").style.display = "none";
+    document.getElementById("userView").style.display = "block";
+
+    document.getElementById("viewTitle").innerText = e.title;
+    document.getElementById("viewDescription").innerText = e.description;
+  }
+
+  document.getElementById("modal").style.display = "flex";
+};
+
+/* =========================
+   CLOSE MODAL
+========================= */
+
+window.closeModal = function () {
+  document.getElementById("modal").style.display = "none";
+};
+
+/* =========================
+   SAVE EDIT
+========================= */
+
+window.saveEventEdit = async function () {
+
+  if (!openedEventId) return;
+
+  await updateDoc(doc(db, "events", openedEventId), {
+    title: document.getElementById("editTitle").value,
+    description: document.getElementById("editDescription").value
+  });
+
+  closeModal();
+};
+
+/* =========================
+   INIT
+========================= */
+
+renderCalendar();
+window.addEventListener("resize", renderCalendar);
+
+</script>
+
+<div id="modal" style="
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.6);
+  z-index:2000;
+  justify-content:center;
+  align-items:center;
+">
+
+  <div style="
+    background:#1f2937;
+    padding:25px;
+    border-radius:15px;
+    width:90%;
+    max-width:400px;
+    position:relative;
+  ">
+
+    <button onclick="closeModal()" style="
+  position:absolute;
+  top:12px;
+  right:12px;
+
+  width:32px;
+  height:32px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:rgba(255,0,0,0.8);
+  color:white;
+
+  border:none;
+  border-radius:8px;
+
+  cursor:pointer;
+
+  font-size:18px;
+  line-height:1;
+
+  opacity:0.7;
+  transition:0.2s;
+"
+onmouseover="this.style.opacity='1'"
+onmouseout="this.style.opacity='0.7'"
+    ">×</button>
+
+<div id="adminEdit" style="display:none;">
+
+  <h2>Upravit událost</h2>
+
+  <input id="editTitle" style="
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+    border:none;
+  ">
+
+  <textarea id="editDescription" style="
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+    border:none;
+    min-height:120px;
+  "></textarea>
+
+  <button id="saveButton" onclick="saveEventEdit()" style="
+    margin-top:15px;
+    background:#4caf50;
+    color:white;
+    border:none;
+    padding:10px 15px;
+    border-radius:8px;
+    cursor:pointer;
+  ">
+    Uložit změny
+  </button>
+
+</div>
+
+<div id="userView" style="display:none;">
+
+  <h2 id="viewTitle"></h2>
+
+  <p id="viewDescription" style="
+    margin-top:15px;
+    line-height:1.6;
+    white-space:pre-wrap;
+  "></p>
+
+  </div>
+</div>
+
+<script>
+function showCookieBanner() {
+
+  if (
+    !localStorage.getItem('cookieConsent')
+  ) {
+    document
+      .getElementById('cookieBanner')
+      .classList.add('show');
+  }
+}
+
+function acceptCookies() {
+
+  localStorage.setItem(
+    'cookieConsent',
+    'accepted'
+  );
+
+  document
+    .getElementById('cookieBanner')
+    .classList.remove('show');
+
+  loadAnalytics();
+}
+
+function declineCookies() {
+
+  localStorage.setItem(
+    'cookieConsent',
+    'declined'
+  );
+
+  document
+    .getElementById('cookieBanner')
+    .classList.remove('show');
+}
+
+document.addEventListener(
+  'DOMContentLoaded',
+  showCookieBanner
+);
+</script>
+
+<div id="cookieBanner" class="cookie-banner">
+  <div class="cookie-content">
+
+    <div>
+      Tento web používá analytické cookies služby Google Analytics
+      pro měření návštěvnosti.
+    </div>
+
+    <div class="cookie-buttons">
+      <button
+        class="cookie-btn cookie-decline"
+        onclick="declineCookies()">
+        Odmítnout
+      </button>
+
+      <button
+        class="cookie-btn cookie-accept"
+        onclick="acceptCookies()">
+        Přijmout
+      </button>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
